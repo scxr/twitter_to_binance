@@ -13,8 +13,9 @@ class Transactions(base):
     buy_price = Column(Float)
     sell_price = Column(Float)
     still_open = Column(Boolean, default=True)
+    order_id = Column(String)
 
 
     def __repr__(self):
-        return f"<Coin bought : {self.coin}, Amount Bought : {self.amount},\
-            Still open : {self.still_open}"
+        return f"""<Coin bought : {self.coin}, Amount Bought : {self.amount},\\n
+            Still open : {self.still_open}>"""
