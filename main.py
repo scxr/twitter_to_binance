@@ -10,26 +10,33 @@ from get_binance_balance import get_balance
 def setup_dict(users):
     my_dict = {}
     for i in users:
-        my_dict[i] = 1300000000000000000
+        my_dict[i] = (1300000000000000000,0)
     return my_dict
 
-balance, can_use = get_balance()
+balance, amnt ,can_use = get_balance()
+can_use = True
 users_to_monitor = ["Bitc0inBar0n","elonmusk"]
-last_tweets=setup_dict(users_to_monitor)
-print(last_tweets)
+mydict=setup_dict(users_to_monitor)
 if can_use:
-    print(balance)
-    to_use = input('How much of this balance would you like to use? : ')
+    print(f'{balance} USDT')
+    to_use = input('How much of this balance would you like to use? : (in percentage)')
+    amount_to_play_with = float(amnt) * (float(to_use)/100)
     distribute_or_no = input('Would you like to distribute this amongst your users? : ')
     if distribute_or_no[0].lower() == 'y':
         to_use = 0
-
+        to_use_total = 0
         for user in users_to_monitor:
-            to_use_total = 0
-            while to_use_total <= 100:
-                to_use = input(f'How much would you like to use for : {user}')
-            
-        
+            to_use = float(input(f'How much would you like to use for : {user}? (Total left : {100-to_use_total}) '))
+            mydict[user] = (1300000000000000000, to_use)
+            to_use_total += to_use
+            if to_use_total > 100:
+                print('You exceeded using 100%, exiting')
+                sys.exit(1)
+    else:
+        big_boy = input(f'You selected no, who would you like to spend 100% of your balance on? Your options : {" ,".join(users_to_monitor)} : ')
+        resp = (1300000000000000000, 100)
+        mydict[big_boy] = resp
+        print(mydict[big_boy])       
 else:
     print(balance)
     sys.exit()
@@ -55,10 +62,14 @@ cryptos_to_check = {
 tweets = []
 users_to_monitor = ["Bitc0inBar0n","elonmusk"]
 
-print(last_tweets)
+print(mydict)
 found_in = []
 while 1:
     for user in users_to_monitor:
+        print(mydict[user][1])
+        print(type(amnt))
+        amount_for_user = float(amnt) * (float(mydict[user][1])/100)
+        print(amount_for_user)
         tweets = api.user_timeline(screen_name = user,
                                 count = 1,
                                 include_rts = False,
@@ -66,18 +77,18 @@ while 1:
                                 since_id = last_id
                                 )
         for i in tweets:
-            if i.id > last_tweets[user]:
+            if i.id > mydict[user][0]:
                 print("New tweet : ", i.full_text)
-                last_tweets[user] = i.id
+                mydict[user] = i.id
                 for j in cryptos_to_check.keys():
                     if j in i.full_text.lower(): 
-                        pool.add_task(main_loop, j)
+                        pool.add_task(main_loop, j,0)
                         pool.wait_completion()
                         alert_via_discord(user, j, i.full_text)
                         found_in.append(i.id)
                 for j in cryptos_to_check.values():
                     if j.lower() in i.full_text.lower() and i.id not in found_in:
-                        pool.add_task(main_loop, j)
+                        pool.add_task(main_loop, j,0)
                         pool.wait_completion()
                         alert_via_discord(user, j, i.full_text)
     print("sleeping")
