@@ -2,8 +2,37 @@ import json
 import tweepy
 import time
 import requests
+import sys
 from monitor_price_change import main_loop
 from thread_pool_manager import ThreadPool
+from get_binance_balance import get_balance
+
+def setup_dict(users):
+    my_dict = {}
+    for i in users:
+        my_dict[i] = 1300000000000000000
+    return my_dict
+
+balance, can_use = get_balance()
+users_to_monitor = ["Bitc0inBar0n","elonmusk"]
+last_tweets=setup_dict(users_to_monitor)
+print(last_tweets)
+if can_use:
+    print(balance)
+    to_use = input('How much of this balance would you like to use? : ')
+    distribute_or_no = input('Would you like to distribute this amongst your users? : ')
+    if distribute_or_no[0].lower() == 'y':
+        to_use = 0
+
+        for user in users_to_monitor:
+            to_use_total = 0
+            while to_use_total <= 100:
+                to_use = input(f'How much would you like to use for : {user}')
+            
+        
+else:
+    print(balance)
+    sys.exit()
 pool = ThreadPool(20)
 with open("credentials.json") as f:
     credentials = json.load(f)
@@ -25,12 +54,7 @@ cryptos_to_check = {
 }
 tweets = []
 users_to_monitor = ["Bitc0inBar0n","elonmusk"]
-def setup_dict(users):
-    my_dict = {}
-    for i in users:
-        my_dict[i] = 1300000000000000000
-    return my_dict
-last_tweets=setup_dict(users_to_monitor)
+
 print(last_tweets)
 found_in = []
 while 1:

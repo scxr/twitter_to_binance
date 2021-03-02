@@ -1,4 +1,5 @@
 *.json
 *.pyc
 *.db
+**/.vscode
 **/__pycache__

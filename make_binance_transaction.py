@@ -13,7 +13,7 @@ def create_order(order_type:str, crypto_symbol:str, amount:float, fiat:str='USDT
             symbol = f'{crypto_symbol}{fiat}',
             side = order_type,
             type='MARKET',
-            quantity = 1000
+            quantity = amount
         )
         return buy_order
     except Exception as e:
