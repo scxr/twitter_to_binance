@@ -20,11 +20,14 @@ def get_price(crypto:str,  inital_price:int=0, fiat:str="USDT", base_price:int=0
     return percent_change, price
 
 def main_loop(crypto, amount):
-
+    int(amount)
     _, base_price = get_price(crypto)
     order_id = random.randint(000000, 111111) 
     add_new_transaction(crypto, amount,base_price,order_id)
-    create_order('BUY',crypto.upper(), amount)
+    try:
+        create_order('BUY',crypto.upper(), amount)
+    except:
+        return 'Failed'
     percent = 0.0
     while percent >= -1:
         percent, curr = get_price(crypto, inital_price=base_price)

@@ -1,11 +1,14 @@
+# todo
+# fix amount to buy for alt and main coins
 import json
 import tweepy
 import time
 import requests
 import sys
-from monitor_price_change import main_loop
+import math
+from monitor_price_change import main_loop, get_price
 from thread_pool_manager import ThreadPool
-from get_binance_balance import get_balance
+from get_binance_balance import get_balance, get_tick_size, get_alt_tick_size
 
 def setup_dict(users):
     my_dict = {}
@@ -35,8 +38,11 @@ if can_use:
     else:
         big_boy = input(f'You selected no, who would you like to spend 100% of your balance on? Your options : {" ,".join(users_to_monitor)} : ')
         resp = (1300000000000000000, 100)
-        mydict[big_boy] = resp
-        print(mydict[big_boy])       
+        if big_boy in mydict.keys():
+            mydict[big_boy] = resp
+        else:
+            print('Invalid user')
+            sys.exit(1)
 else:
     print(balance)
     sys.exit()
@@ -62,14 +68,15 @@ cryptos_to_check = {
 tweets = []
 users_to_monitor = ["Bitc0inBar0n","elonmusk"]
 
-print(mydict)
+#print(mydict)
 found_in = []
 while 1:
     for user in users_to_monitor:
-        print(mydict[user][1])
-        print(type(amnt))
+        #print(mydict[user][1])
+        #print(type(amnt))
+        #print(mydict[user][1])
         amount_for_user = float(amnt) * (float(mydict[user][1])/100)
-        print(amount_for_user)
+        #print(amount_for_user)
         tweets = api.user_timeline(screen_name = user,
                                 count = 1,
                                 include_rts = False,
@@ -78,18 +85,41 @@ while 1:
                                 )
         for i in tweets:
             if i.id > mydict[user][0]:
-                print("New tweet : ", i.full_text)
-                mydict[user] = i.id
+                #print("New tweet : ", i.full_text)
+                tmp = (i.id, mydict[user][1])
+                mydict[user] = tmp
+                #print(amount_for_user, amnt)
                 for j in cryptos_to_check.keys():
                     if j in i.full_text.lower(): 
-                        pool.add_task(main_loop, j,0)
-                        pool.wait_completion()
-                        alert_via_discord(user, j, i.full_text)
+                        if not mydict[user][1] == 0: 
+                            cryptos_price = float(get_price(j)[1])
+                            cryptos_ticker = get_tick_size(j.upper())
+                            #amount_to_buy = amnt / cryptos_price - ((cryptos_price/95))
+                            #amount_to_buy_dec_split = str(amount_to_buy).split('.')
+                            #amount_to_buy_dec = [str(amount_to_buy_dec_split[1])[0:cryptos_ticker] if len(str(amount_to_buy_dec_split[1])) > cryptos_ticker else str(amount_to_buy_dec)][0]
+                            #amount_to_buy = float('.'.join([amount_to_buy_dec_split[0],amount_to_buy_dec])) 
+                            #print(amount_to_buy)
+                            print(f'Buying {j}  {amount_to_buy}  {cryptos_price}')
+                            pool.add_task(main_loop, j,float(amount_to_buy_dec_split[0]))
+                            pool.wait_completion()
+                        #alert_via_discord(user, j, i.full_text)
                         found_in.append(i.id)
                 for j in cryptos_to_check.values():
                     if j.lower() in i.full_text.lower() and i.id not in found_in:
-                        pool.add_task(main_loop, j,0)
-                        pool.wait_completion()
-                        alert_via_discord(user, j, i.full_text)
-    print("sleeping")
+                        if not mydict[user][1] == 0:
+                            cryptos_price = float(get_price(j.upper()))
+                            cryptos_ticker = get_alt_tick_size(j.upper())
+                            #amount_to_buy = amnt / cryptos_price - ((cryptos_price/95))
+                            #amount_to_buy_dec_split = str(amount_to_buy).split('.')
+                            #amount_to_buy_dec = [str(amount_to_buy_dec_split[1])[0:cryptos_ticker] if len(str(amount_to_buy_dec_split[1])) > cryptos_ticker else str(amount_to_buy_dec)][0]
+                            #amount_to_buy = float('.'.join([amount_to_buy_dec_split[0],amount_to_buy_dec]))
+                            amount_to_buy = math.floor(
+                                amount_for_user * 10 ** 
+                            )
+                            
+                            print(f'Buying {j}  {amount_to_buy}  {cryptos_price}')
+                            #pool.add_task(main_loop, j,amount_for_user)
+                            #pool.wait_completion()
+                        #alert_via_discord(user, j, i.full_text)
+    #print("sleeping")
     time.sleep(10)
