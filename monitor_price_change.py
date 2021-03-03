@@ -20,22 +20,26 @@ def get_price(crypto:str,  inital_price:int=0, fiat:str="USDT", base_price:int=0
     return percent_change, price
 
 def main_loop(crypto, amount):
+    print('test')
     int(amount)
     _, base_price = get_price(crypto)
     order_id = random.randint(000000, 111111) 
     add_new_transaction(crypto, amount,base_price,order_id)
     try:
         create_order('BUY',crypto.upper(), amount)
-    except:
+    except Exception as e:
+        print(e)
         return 'Failed'
-    percent = 0.0
-    while percent >= -1:
+    percent = 0.00
+    print('here')
+    
+    while 1:
         percent, curr = get_price(crypto, inital_price=base_price)
-        time.sleep(10)
         if percent >= rules['TAKE_PROFIT'] or percent <= rules['TAKE_LOSS']:
             create_order('SELL',crypto.upper(), amount)
             mark_closed(order_id, curr)
             print(f'bought in at {base_price} and sold at {curr}')
+        time.sleep(10)
     return
 
 

@@ -93,14 +93,20 @@ while 1:
                     if j in i.full_text.lower(): 
                         if not mydict[user][1] == 0: 
                             cryptos_price = float(get_price(j)[1])
-                            cryptos_ticker = get_tick_size(j.upper())
+                            cryptos_ticker = get_alt_tick_size(j.upper())
+                            amount_to_buy = math.floor(
+                                amount_for_user * 10 ** cryptos_ticker
+                                / cryptos_price
+                            ) / float(10 ** cryptos_ticker)
+
+
                             #amount_to_buy = amnt / cryptos_price - ((cryptos_price/95))
                             #amount_to_buy_dec_split = str(amount_to_buy).split('.')
                             #amount_to_buy_dec = [str(amount_to_buy_dec_split[1])[0:cryptos_ticker] if len(str(amount_to_buy_dec_split[1])) > cryptos_ticker else str(amount_to_buy_dec)][0]
                             #amount_to_buy = float('.'.join([amount_to_buy_dec_split[0],amount_to_buy_dec])) 
                             #print(amount_to_buy)
                             print(f'Buying {j}  {amount_to_buy}  {cryptos_price}')
-                            pool.add_task(main_loop, j,float(amount_to_buy_dec_split[0]))
+                            pool.add_task(main_loop, j,float(amount_to_buy))
                             pool.wait_completion()
                         #alert_via_discord(user, j, i.full_text)
                         found_in.append(i.id)
@@ -114,12 +120,14 @@ while 1:
                             #amount_to_buy_dec = [str(amount_to_buy_dec_split[1])[0:cryptos_ticker] if len(str(amount_to_buy_dec_split[1])) > cryptos_ticker else str(amount_to_buy_dec)][0]
                             #amount_to_buy = float('.'.join([amount_to_buy_dec_split[0],amount_to_buy_dec]))
                             amount_to_buy = math.floor(
-                                amount_for_user * 10 ** 
-                            )
+                                amount_for_user * 10 ** cryptos_ticker
+                                / cryptos_price
+                            ) / float(10 ** cryptos_ticker)
                             
                             print(f'Buying {j}  {amount_to_buy}  {cryptos_price}')
-                            #pool.add_task(main_loop, j,amount_for_user)
-                            #pool.wait_completion()
+                            pool.add_task(main_loop, j,amount_to_buy)
+                            pool.wait_completion()
+            print(i)
                         #alert_via_discord(user, j, i.full_text)
     #print("sleeping")
     time.sleep(10)
